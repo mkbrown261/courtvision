@@ -4,7 +4,7 @@ export function getHTML(): string {
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-<title>Game Vision — Sports Intelligence Platform</title>
+<title>GameVision — Sports Intelligence Platform</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Bebas+Neue&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
@@ -391,7 +391,7 @@ textarea.form-input{resize:vertical;min-height:80px;line-height:1.5}
     <div class="auth-card">
       <div class="auth-logo">
         <div class="logo-icon" style="background:var(--primary);display:flex;align-items:center;justify-content:center">👁️</div>
-        <h1>Game Vision</h1>
+        <h1>GameVision</h1>
         <p>Sports Intelligence Platform</p>
       </div>
       <div id="auth-form-wrap">
@@ -434,7 +434,7 @@ textarea.form-input{resize:vertical;min-height:80px;line-height:1.5}
       <div class="sidebar-logo">
         <div class="logo-icon">👁️</div>
         <div>
-          <div class="logo-text">Game Vision</div>
+          <div class="logo-text">GameVision</div>
           <div class="logo-sub">Sports Intelligence</div>
         </div>
       </div>
@@ -2542,7 +2542,7 @@ const PM = {
   undoStack: [], redoStack: [],
   drawing: false, drawPoints: [], activeObj: null,
   dragPin: null, dragOffset: null,
-  savedPlays: JSON.parse(localStorage.getItem('cv_plays') || '[]'),
+  savedPlays: JSON.parse(localStorage.getItem('gv_plays') || '[]'),
   pinCounter: 1,
   raycaster: null, mouse: null,
   courtMesh: null, floorMesh: null,
@@ -3571,7 +3571,7 @@ function pmSavePlay() {
     zones: PM.zones.map(z => ({ color: z.color, pts: [] }))
   }
   PM.savedPlays.unshift(play)
-  localStorage.setItem('cv_plays', JSON.stringify(PM.savedPlays.slice(0,50)))
+  localStorage.setItem('gv_plays', JSON.stringify(PM.savedPlays.slice(0,50)))
   ;document.getElementById('pm-play-name').value = ''
   _pmRenderPlays()
   toast(\`✅ Play "\${name}" saved!\`, 'ok')
@@ -3610,7 +3610,7 @@ function pmLoadPlay(id) {
 
 function pmDeletePlay(id) {
   PM.savedPlays = PM.savedPlays.filter(p => p.id !== id)
-  localStorage.setItem('cv_plays', JSON.stringify(PM.savedPlays))
+  localStorage.setItem('gv_plays', JSON.stringify(PM.savedPlays))
   _pmRenderPlays()
 }
 
