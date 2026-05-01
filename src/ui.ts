@@ -361,6 +361,27 @@ textarea.form-input{resize:vertical;min-height:80px;line-height:1.5}
   .tile-grid{grid-template-columns:1fr 1fr}
   .analytics-grid{grid-template-columns:1fr}
 }
+
+/* ── 3D PLAYMAKER ── */
+.pm-sport-btn{background:transparent;border:none;border-radius:7px;padding:4px 9px;cursor:pointer;font-size:18px;transition:all 0.15s;line-height:1;color:var(--text2)}
+.pm-sport-btn:hover{background:var(--bg4)}
+.pm-sport-btn.active{background:var(--primary-glow);box-shadow:0 0 0 1px var(--primary)}
+.pm-tool-btn{background:transparent;border:none;border-radius:7px;width:32px;height:32px;cursor:pointer;font-size:13px;color:var(--text2);display:flex;align-items:center;justify-content:center;transition:all 0.15s}
+.pm-tool-btn:hover{background:var(--bg4);color:var(--text)}
+.pm-tool-btn.active{background:var(--primary-glow);color:var(--primary);box-shadow:0 0 0 1px var(--primary)}
+.pm-action-btn{background:var(--bg3);border:1px solid var(--border);border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:12px;color:var(--text2);display:flex;align-items:center;justify-content:center;transition:all 0.15s}
+.pm-action-btn:hover{background:var(--bg4);color:var(--text);border-color:var(--border2)}
+.pm-color-swatch{width:22px;height:22px;border-radius:6px;cursor:pointer;border:2px solid transparent;transition:all 0.15s;flex-shrink:0}
+.pm-color-swatch:hover{transform:scale(1.15)}
+.pm-color-swatch.active{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,0.4)}
+.pm-style-btn{background:transparent;border:none;border-radius:7px;padding:4px 8px;cursor:pointer;font-size:16px;color:var(--text2);transition:all 0.15s;line-height:1}
+.pm-style-btn:hover{background:var(--bg4);color:var(--text)}
+.pm-style-btn.active{background:var(--primary-glow);color:var(--primary);box-shadow:0 0 0 1px var(--primary)}
+.pm-pin-label{position:absolute;pointer-events:none;font-size:11px;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.9);transform:translate(-50%,-180%);white-space:nowrap;letter-spacing:0.3px}
+.pm-plays-item{display:flex;align-items:center;gap:6px;padding:5px 6px;border-radius:8px;cursor:pointer;transition:background 0.1s;font-size:12px;color:var(--text2)}
+.pm-plays-item:hover{background:var(--bg3);color:var(--text)}
+.pm-plays-item .del-btn{margin-left:auto;opacity:0;color:var(--danger);font-size:11px;background:transparent;border:none;cursor:pointer;padding:0 3px}
+.pm-plays-item:hover .del-btn{opacity:1}
 </style>
 </head>
 <body>
@@ -428,6 +449,8 @@ textarea.form-input{resize:vertical;min-height:80px;line-height:1.5}
         <div class="nav-section">Intelligence</div>
         <button class="nav-item" data-view="analytics"><i class="fas fa-chart-line"></i> Coach Analytics</button>
         <button class="nav-item" data-view="stats"><i class="fas fa-table"></i> Stats Center</button>
+        <div class="nav-section coach-only">Coach Tools</div>
+        <button class="nav-item coach-only" data-view="playmaker"><i class="fas fa-draw-polygon"></i> 3D Playmaker</button>
       </nav>
       <div class="sidebar-footer">
         <button class="nav-item" onclick="showNewGameModal()"><i class="fas fa-plus-circle"></i> New Game</button>
@@ -619,6 +642,93 @@ textarea.form-input{resize:vertical;min-height:80px;line-height:1.5}
             <div class="empty-state"><i class="fas fa-chart-line"></i><h3>Select a team</h3><p>Choose a team above to view coaching analytics and player insights.</p></div>
           </div>
         </div>
+      </div>
+
+      <!-- VIEW: 3D PLAYMAKER (Coach Only) -->
+      <div class="view" id="view-playmaker" style="flex-direction:column;overflow:hidden">
+        <!-- Toolbar -->
+        <div id="pm-toolbar" style="background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0;z-index:10">
+          <!-- Sport selector -->
+          <div style="display:flex;gap:4px;background:var(--bg3);padding:3px;border-radius:9px;border:1px solid var(--border)">
+            <button class="pm-sport-btn active" data-sport="basketball" onclick="pmSetSport('basketball')" title="Basketball">🏀</button>
+            <button class="pm-sport-btn" data-sport="soccer" onclick="pmSetSport('soccer')" title="Soccer">⚽</button>
+            <button class="pm-sport-btn" data-sport="football" onclick="pmSetSport('football')" title="Football">🏈</button>
+            <button class="pm-sport-btn" data-sport="hockey" onclick="pmSetSport('hockey')" title="Hockey">🏒</button>
+          </div>
+          <div style="width:1px;height:28px;background:var(--border)"></div>
+          <!-- Tools -->
+          <div style="display:flex;gap:4px;background:var(--bg3);padding:3px;border-radius:9px;border:1px solid var(--border)">
+            <button class="pm-tool-btn active" data-tool="select" onclick="pmSetTool('select')" title="Select / Move (V)"><i class="fas fa-arrow-pointer"></i></button>
+            <button class="pm-tool-btn" data-tool="pin" onclick="pmSetTool('pin')" title="Place Player Pin (P)"><i class="fas fa-map-pin"></i></button>
+            <button class="pm-tool-btn" data-tool="draw" onclick="pmSetTool('draw')" title="Draw Route (D)"><i class="fas fa-pen"></i></button>
+            <button class="pm-tool-btn" data-tool="arrow" onclick="pmSetTool('arrow')" title="Draw Arrow (A)"><i class="fas fa-arrow-right-long"></i></button>
+            <button class="pm-tool-btn" data-tool="zone" onclick="pmSetTool('zone')" title="Draw Zone (Z)"><i class="fas fa-draw-polygon"></i></button>
+            <button class="pm-tool-btn" data-tool="erase" onclick="pmSetTool('erase')" title="Erase (E)"><i class="fas fa-eraser"></i></button>
+          </div>
+          <!-- Line color -->
+          <div style="display:flex;align-items:center;gap:5px">
+            <div style="font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Color</div>
+            <div id="pm-colors" style="display:flex;gap:3px">
+              <div class="pm-color-swatch active" style="background:#FF4757" data-color="#FF4757" onclick="pmSetColor('#FF4757')" title="Red"></div>
+              <div class="pm-color-swatch" style="background:#6C63FF" data-color="#6C63FF" onclick="pmSetColor('#6C63FF')" title="Purple"></div>
+              <div class="pm-color-swatch" style="background:#00D4AA" data-color="#00D4AA" onclick="pmSetColor('#00D4AA')" title="Teal"></div>
+              <div class="pm-color-swatch" style="background:#FFB800" data-color="#FFB800" onclick="pmSetColor('#FFB800')" title="Gold"></div>
+              <div class="pm-color-swatch" style="background:#FFFFFF" data-color="#FFFFFF" onclick="pmSetColor('#FFFFFF')" title="White"></div>
+              <div class="pm-color-swatch" style="background:#FF6B35" data-color="#FF6B35" onclick="pmSetColor('#FF6B35')" title="Orange"></div>
+            </div>
+            <input type="color" id="pm-custom-color" value="#FF4757" title="Custom color"
+              style="width:26px;height:26px;border:none;border-radius:6px;cursor:pointer;background:transparent;padding:1px"
+              oninput="pmSetColor(this.value)"/>
+          </div>
+          <!-- Line style -->
+          <div style="display:flex;gap:4px;background:var(--bg3);padding:3px;border-radius:9px;border:1px solid var(--border)">
+            <button class="pm-style-btn active" data-style="solid" onclick="pmSetLineStyle('solid')" title="Solid line">&#9473;</button>
+            <button class="pm-style-btn" data-style="dashed" onclick="pmSetLineStyle('dashed')" title="Dashed line">&#9476;</button>
+            <button class="pm-style-btn" data-style="dotted" onclick="pmSetLineStyle('dotted')" title="Dotted line">&#8943;</button>
+          </div>
+          <div style="width:1px;height:28px;background:var(--border)"></div>
+          <!-- Actions -->
+          <button class="pm-action-btn" onclick="pmUndo()" title="Undo (Ctrl+Z)"><i class="fas fa-rotate-left"></i></button>
+          <button class="pm-action-btn" onclick="pmRedo()" title="Redo (Ctrl+Y)"><i class="fas fa-rotate-right"></i></button>
+          <button class="pm-action-btn" onclick="pmClear()" title="Clear all"><i class="fas fa-trash"></i></button>
+          <div style="width:1px;height:28px;background:var(--border)"></div>
+          <button class="pm-action-btn" onclick="pmResetCamera()" title="Reset camera view"><i class="fas fa-expand"></i></button>
+          <button class="pm-action-btn" onclick="pmToggle3D()" id="pm-3d-toggle-btn" title="Toggle 3D / Top-down"><i class="fas fa-cube"></i></button>
+          <div style="flex:1"></div>
+          <!-- Play name + save -->
+          <input id="pm-play-name" class="form-input" placeholder="Play name..." style="width:160px;height:32px;font-size:12px"/>
+          <button class="btn btn-success btn-sm" onclick="pmSavePlay()"><i class="fas fa-floppy-disk"></i> Save</button>
+          <button class="btn btn-primary btn-sm" onclick="pmExportPNG()"><i class="fas fa-image"></i> PNG</button>
+        </div>
+        <!-- Pin number hint -->
+        <div id="pm-pin-hint" style="display:none;background:rgba(108,99,255,0.15);border-bottom:1px solid rgba(108,99,255,0.3);padding:6px 14px;font-size:12px;color:var(--primary);flex-shrink:0">
+          <i class="fas fa-map-pin"></i> <strong>Pin mode:</strong> Click the court to place a player. Numbers auto-assign. Right-click a pin to delete it.
+        </div>
+        <div id="pm-draw-hint" style="display:none;background:rgba(0,212,170,0.1);border-bottom:1px solid rgba(0,212,170,0.25);padding:6px 14px;font-size:12px;color:var(--success);flex-shrink:0">
+          <i class="fas fa-pen"></i> <strong>Draw mode:</strong> Click and drag on the court to draw a route. Release to finish. Click drawn lines to select.
+        </div>
+        <!-- 3D Canvas -->
+        <div id="pm-canvas-wrap" style="flex:1;position:relative;overflow:hidden;cursor:crosshair">
+          <canvas id="pm-canvas" style="display:block;width:100%;height:100%"></canvas>
+          <!-- Saved plays panel -->
+          <div id="pm-plays-panel" style="position:absolute;right:12px;top:12px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:10px;min-width:160px;max-width:200px;max-height:calc(100% - 24px);overflow-y:auto;display:none">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text3);margin-bottom:8px"><i class="fas fa-bookmark"></i> Saved Plays</div>
+            <div id="pm-plays-list"></div>
+            <button class="btn btn-ghost btn-sm btn-block" onclick="document.getElementById('pm-plays-panel').style.display='none'" style="margin-top:6px;font-size:11px">Close</button>
+          </div>
+          <!-- Camera controls hint -->
+          <div style="position:absolute;bottom:10px;left:12px;font-size:10px;color:var(--text3);pointer-events:none;line-height:1.8">
+            <i class="fas fa-mouse"></i> Drag: orbit &nbsp; Scroll: zoom &nbsp; Right-drag: pan
+          </div>
+          <!-- Sport label -->
+          <div id="pm-sport-label" style="position:absolute;top:10px;left:12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);pointer-events:none">🏀 Basketball</div>
+          <!-- Tool indicator -->
+          <div id="pm-tool-indicator" style="position:absolute;bottom:10px;right:12px;font-size:11px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:4px 10px;color:var(--text2);pointer-events:none">
+            SELECT
+          </div>
+        </div>
+        <!-- Saved plays toggle -->
+        <button style="position:absolute;right:12px;top:60px;z-index:20;background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:6px 10px;font-size:12px;color:var(--text2);cursor:pointer;font-weight:600" onclick="pmTogglePlaysPanel()"><i class="fas fa-bookmark"></i> Plays</button>
       </div>
 
       <!-- VIEW: STATS CENTER -->
@@ -918,6 +1028,14 @@ function setUser(user) {
   document.getElementById('auth-screen').style.display = 'none'
   renderUserPill()
   loadDashboard()
+  // Apply role-based UI gating
+  setTimeout(() => {
+    const role = user?.role || 'guest'
+    const isCoach = ['coach','assistant_coach','admin'].includes(role)
+    document.querySelectorAll('.coach-only').forEach((el) => {
+      el.style.display = isCoach ? '' : 'none'
+    })
+  }, 50)
 }
 
 function renderUserPill() {
@@ -977,7 +1095,7 @@ function showView(name) {
   const titles = {
     dashboard:'Dashboard', teams:'Teams & Rosters', games:'All Games',
     tracker:'Live Tracker', ingestion:'Data Ingestion', analytics:'Coach Analytics',
-    stats:'Stats Center', 'team-detail':'Team Detail'
+    stats:'Stats Center', 'team-detail':'Team Detail', playmaker:'3D Playmaker'
   }
   document.getElementById('topbar-title').textContent = titles[name] || name
   document.getElementById('topbar-actions').innerHTML = ''
@@ -986,6 +1104,7 @@ function showView(name) {
   if (name === 'games') loadGamesView()
   if (name === 'stats') loadStatsSelectors()
   if (name === 'analytics') loadAnalyticsSelectors()
+  if (name === 'playmaker') initPlaymaker()
 }
 
 document.querySelectorAll('.nav-item[data-view]').forEach(btn => {
@@ -2411,6 +2530,1142 @@ if (window.innerWidth < 768) {
 // ═══════════════════════════════════════════════════════════════════════
 initAuth()
 refreshIngestionTargets()
+
+// ═══════════════════════════════════════════════════════════════════════
+// 3D PLAYMAKER ENGINE — Three.js powered court designer
+// ═══════════════════════════════════════════════════════════════════════
+const PM = {
+  scene: null, camera: null, renderer: null, animId: null,
+  sport: 'basketball', tool: 'select', color: '#FF4757',
+  lineStyle: 'solid', is3D: true,
+  pins: [], lines: [], zones: [], arrows: [],
+  undoStack: [], redoStack: [],
+  drawing: false, drawPoints: [], activeObj: null,
+  dragPin: null, dragOffset: null,
+  savedPlays: JSON.parse(localStorage.getItem('cv_plays') || '[]'),
+  pinCounter: 1,
+  raycaster: null, mouse: null,
+  courtMesh: null, floorMesh: null,
+  // orbit state
+  orbitStart: null, orbitSpherical: { theta: 0.3, phi: 1.0, radius: 28 },
+  panOffset: { x: 0, y: 0 },
+  isPanning: false, isOrbiting: false,
+  lastTouch: null, pinchStart: null,
+  hoverPin: null,
+  labelCanvas: null, labelCtx: null, labelTex: null
+}
+
+const SPORT_COURTS = {
+  basketball: {
+    label: '🏀 Basketball', w: 28, h: 15,
+    floor: '#1a3a1a', line: '#ffffff',
+    draw(scene, THREE) { buildBasketballCourt(scene, THREE) }
+  },
+  soccer: {
+    label: '⚽ Soccer', w: 34, h: 22,
+    floor: '#1a4a1a', line: '#ffffff',
+    draw(scene, THREE) { buildSoccerPitch(scene, THREE) }
+  },
+  football: {
+    label: '🏈 Football', w: 48, h: 26,
+    floor: '#1a3a1a', line: '#ffffff',
+    draw(scene, THREE) { buildFootballField(scene, THREE) }
+  },
+  hockey: {
+    label: '🏒 Hockey', w: 30, h: 15,
+    floor: '#b8e4f9', line: '#cc0000',
+    draw(scene, THREE) { buildHockeyRink(scene, THREE) }
+  }
+}
+
+// ── Load Three.js from CDN then init ──────────────────────────────────
+async function initPlaymaker() {
+  if (PM.renderer) { PM.renderer.setSize(0,0); _pmResize(); return }
+  if (!window.THREE) {
+    await _pmLoadScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js')
+  }
+  _pmInit()
+}
+
+function _pmLoadScript(src) {
+  return new Promise((res, rej) => {
+    const s = document.createElement('script')
+    s.src = src; s.onload = () => res(); s.onerror = rej
+    document.head.appendChild(s)
+  })
+}
+
+function _pmInit() {
+  const THREE = window.THREE
+  const canvas = document.getElementById('pm-canvas')
+  const wrap = document.getElementById('pm-canvas-wrap')
+
+  // Renderer
+  PM.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false })
+  PM.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+  PM.renderer.shadowMap.enabled = true
+  PM.renderer.shadowMap.type = THREE.PCFSoftShadowMap
+
+  // Scene
+  PM.scene = new THREE.Scene()
+  PM.scene.background = new THREE.Color(0x0a0a14)
+  PM.scene.fog = new THREE.Fog(0x0a0a14, 40, 80)
+
+  // Camera
+  PM.camera = new THREE.PerspectiveCamera(45, 1, 0.1, 200)
+  PM.raycaster = new THREE.Raycaster()
+  PM.mouse = new THREE.Vector2()
+
+  // Lights
+  const ambient = new THREE.AmbientLight(0xffffff, 0.45)
+  PM.scene.add(ambient)
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.9)
+  dirLight.position.set(10, 20, 10)
+  dirLight.castShadow = true
+  dirLight.shadow.mapSize.width = 2048
+  dirLight.shadow.mapSize.height = 2048
+  dirLight.shadow.camera.near = 0.5
+  dirLight.shadow.camera.far = 80
+  dirLight.shadow.camera.left = -30
+  dirLight.shadow.camera.right = 30
+  dirLight.shadow.camera.top = 30
+  dirLight.shadow.camera.bottom = -30
+  PM.scene.add(dirLight)
+  const fillLight = new THREE.DirectionalLight(0x8888ff, 0.25)
+  fillLight.position.set(-10, 8, -10)
+  PM.scene.add(fillLight)
+  // Court spotlights
+  const spotPositions = [[-8,-8],[8,-8],[-8,8],[8,8]]
+  spotPositions.forEach(([x,z]) => {
+    const spot = new THREE.SpotLight(0xfff8e7, 0.5)
+    spot.position.set(x, 18, z)
+    spot.angle = Math.PI / 5
+    spot.penumbra = 0.4
+    spot.castShadow = false
+    PM.scene.add(spot)
+    PM.scene.add(spot.target)
+    spot.target.position.set(x, 0, z)
+  })
+
+  _pmSetCamera()
+  _pmBuildCourt(THREE)
+  _pmAttachEvents(canvas, wrap, THREE)
+  _pmResize()
+  _pmAnimate(THREE)
+
+  // Window resize
+  const ro = new ResizeObserver(() => _pmResize())
+  ro.observe(wrap)
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', _pmKeyDown)
+  _pmRenderPlays()
+  _pmUpdateRoleGating()
+}
+
+function _pmSetCamera() {
+  const { theta, phi, radius } = PM.orbitSpherical
+  const x = radius * Math.sin(phi) * Math.sin(theta) + PM.panOffset.x
+  const y = radius * Math.cos(phi)
+  const z = radius * Math.sin(phi) * Math.cos(theta) + PM.panOffset.y
+  PM.camera.position.set(x, y, z)
+  PM.camera.lookAt(PM.panOffset.x, 0, PM.panOffset.y)
+}
+
+function _pmResize() {
+  if (!PM.renderer) return
+  const wrap = document.getElementById('pm-canvas-wrap')
+  if (!wrap) return
+  const w = wrap.clientWidth, h = wrap.clientHeight
+  PM.renderer.setSize(w, h, false)
+  PM.camera.aspect = w / h
+  PM.camera.updateProjectionMatrix()
+}
+
+function _pmAnimate(THREE) {
+  PM.animId = requestAnimationFrame(() => _pmAnimate(THREE))
+  _pmUpdatePinLabels(THREE)
+  PM.renderer.render(PM.scene, PM.camera)
+}
+
+// ── Court geometry builders ────────────────────────────────────────────
+function _pmBuildCourt(THREE) {
+  // Clear old court objects (keep pins/lines)
+  const toRemove = []
+  PM.scene.children.forEach((c) => {
+    if (c.userData?.isCourt) toRemove.push(c)
+  })
+  toRemove.forEach(c => PM.scene.remove(c))
+  PM.courtMesh = null
+
+  const cfg = SPORT_COURTS[PM.sport]
+  cfg.draw(PM.scene, THREE)
+}
+
+function _courtGroup(THREE) {
+  const g = new THREE.Group()
+  g.userData.isCourt = true
+  PM.scene.add(g)
+  return g
+}
+
+function _addLine3D(THREE, group, x1, z1, x2, z2, color = 0xffffff, y = 0.03, lw = 0.06) {
+  const dir = new THREE.Vector3(x2-x1, 0, z2-z1)
+  const len = dir.length()
+  if (len < 0.001) return
+  dir.normalize()
+  const geo = new THREE.BoxGeometry(len, lw, lw)
+  const mat = new THREE.MeshBasicMaterial({ color })
+  const mesh = new THREE.Mesh(geo, mat)
+  mesh.position.set((x1+x2)/2, y, (z1+z2)/2)
+  mesh.lookAt(mesh.position.x + dir.x, mesh.position.y, mesh.position.z + dir.z)
+  mesh.rotation.y += Math.PI/2
+  group.add(mesh)
+}
+
+function _addArc3D(THREE, group, cx, cz, r, startA, endA, color = 0xffffff, segs = 64, y = 0.03) {
+  const pts = []
+  for (let i = 0; i <= segs; i++) {
+    const a = startA + (endA - startA) * i / segs
+    pts.push(new THREE.Vector3(cx + Math.cos(a)*r, y, cz + Math.sin(a)*r))
+  }
+  const geo = new THREE.BufferGeometry().setFromPoints(pts)
+  const mat = new THREE.LineBasicMaterial({ color, linewidth: 2 })
+  const line = new THREE.Line(geo, mat)
+  group.add(line)
+}
+
+function _addCircle3D(THREE, group, cx, cz, r, color = 0xffffff, segs = 64, y = 0.03) {
+  _addArc3D(THREE, group, cx, cz, r, 0, Math.PI*2, color, segs, y)
+}
+
+function _addFloor3D(THREE, group, w, h, floorColor) {
+  const geo = new THREE.BoxGeometry(w, 0.12, h)
+  const mat = new THREE.MeshLambertMaterial({ color: floorColor })
+  const mesh = new THREE.Mesh(geo, mat)
+  mesh.position.set(0, -0.06, 0)
+  mesh.receiveShadow = true
+  mesh.userData.isFloor = true
+  PM.floorMesh = mesh
+  group.add(mesh)
+  // Subtle grid underneath
+  const gridHelper = new THREE.GridHelper(Math.max(w,h)*1.5, 20, 0x333344, 0x222233)
+  gridHelper.position.y = -0.05
+  group.add(gridHelper)
+}
+
+// Basketball court (NBA half-court proportions, full court)
+function buildBasketballCourt(scene, THREE) {
+  const g = _courtGroup(THREE)
+  const W = 28, H = 15  // full court
+  _addFloor3D(THREE, g, W, H, 0x8B4513)  // hardwood brown
+
+  // Court outline
+  const lc = 0xffffff
+  _addLine3D(THREE, g, -W/2,-H/2, W/2,-H/2, lc)
+  _addLine3D(THREE, g,  W/2,-H/2, W/2, H/2, lc)
+  _addLine3D(THREE, g,  W/2, H/2,-W/2, H/2, lc)
+  _addLine3D(THREE, g, -W/2, H/2,-W/2,-H/2, lc)
+  // Half-court line
+  _addLine3D(THREE, g, 0,-H/2, 0, H/2, lc)
+  // Center circle
+  _addCircle3D(THREE, g, 0, 0, 1.8, lc)
+  // Three-point arcs (both ends)
+  const tp = 6.75  // NBA 3-pt distance
+  _addArc3D(THREE, g, -W/2+1.2, 0, tp, -Math.PI*0.42, Math.PI*0.42, lc, 64)
+  _addLine3D(THREE, g, -W/2+1.2-tp*Math.sin(Math.PI*0.42), -tp*Math.sin(Math.PI*0.42)*0, -W/2, -H/2*0.6, lc)
+  _addArc3D(THREE, g,  W/2-1.2, 0, tp,  Math.PI*0.58, Math.PI*1.42, lc, 64)
+  // Paint / key (both ends)
+  ;[-W/2+2.8, W/2-2.8].forEach((hx, idx) => {
+    const kw = 3.6, kh = 5.8
+    const sx = idx === 0 ? -W/2 : W/2-kw
+    _addLine3D(THREE, g, sx, -kh/2, sx+kw, -kh/2, lc)
+    _addLine3D(THREE, g, sx+kw, -kh/2, sx+kw, kh/2, lc)
+    _addLine3D(THREE, g, sx+kw, kh/2, sx, kh/2, lc)
+    _addLine3D(THREE, g, sx, kh/2, sx, -kh/2, lc)
+    _addCircle3D(THREE, g, idx===0 ? -W/2+4.6 : W/2-4.6, 0, 1.8, lc)
+    // Backboard & hoop
+    const bx = idx===0 ? -W/2+1.2 : W/2-1.2
+    const hoopGeo = new THREE.TorusGeometry(0.23, 0.025, 8, 24)
+    const hoopMat = new THREE.MeshStandardMaterial({ color: 0xff6600, metalness: 0.8, roughness: 0.2 })
+    const hoop = new THREE.Mesh(hoopGeo, hoopMat)
+    hoop.position.set(bx, 0.8, 0)
+    hoop.rotation.x = Math.PI/2
+    g.add(hoop)
+    // Net (simple lines)
+    for (let n = 0; n < 8; n++) {
+      const a = (n/8)*Math.PI*2
+      const nx1 = bx + Math.cos(a)*0.23, nz1 = Math.sin(a)*0.23
+      const nx2 = bx + Math.cos(a+0.2)*0.08, nz2 = Math.sin(a+0.2)*0.08
+      _addLine3D(THREE, g, nx1, nz1, nx2, nz2, 0xdddddd, 0.55, 0.015)
+    }
+    // Pole
+    const poleGeo = new THREE.CylinderGeometry(0.05, 0.05, 1.2, 8)
+    const poleMat = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.7 })
+    const pole = new THREE.Mesh(poleGeo, poleMat)
+    pole.position.set(bx, 0.3, 0)
+    g.add(pole)
+    // Backboard
+    const bbGeo = new THREE.BoxGeometry(0.06, 0.9, 1.5)
+    const bbMat = new THREE.MeshStandardMaterial({ color: 0x88ccff, transparent: true, opacity: 0.5 })
+    const bb = new THREE.Mesh(bbGeo, bbMat)
+    bb.position.set(bx, 1.0, 0)
+    g.add(bb)
+    const bbFrameGeo = new THREE.BoxGeometry(0.07, 0.04, 1.5)
+    const bbFrameMat = new THREE.MeshStandardMaterial({ color: 0xff6600 })
+    const bbFrame = new THREE.Mesh(bbFrameGeo, bbFrameMat)
+    bbFrame.position.set(bx, 0.7, 0)
+    g.add(bbFrame)
+  })
+  // Hardwood lane lines
+  for (let i = -3; i <= 3; i++) {
+    if (i === 0) continue
+    _addLine3D(THREE, g, -W/2, i*H/8, W/2, i*H/8, 0xffd700, 0.02, 0.02)
+  }
+}
+
+// Soccer pitch
+function buildSoccerPitch(scene, THREE) {
+  const g = _courtGroup(THREE)
+  const W = 34, H = 22
+  _addFloor3D(THREE, g, W, H, 0x2d6a2d)
+  // Striped grass
+  for (let i = 0; i < 8; i++) {
+    const z1 = -H/2 + i*H/8, z2 = z1 + H/16
+    const geo = new THREE.BoxGeometry(W, 0.01, H/16)
+    const mat = new THREE.MeshBasicMaterial({ color: i%2===0 ? 0x286028 : 0x2d6a2d })
+    const stripe = new THREE.Mesh(geo, mat)
+    stripe.position.set(0, 0.005, z1+H/32)
+    g.add(stripe)
+  }
+  const lc = 0xffffff
+  // Outline
+  _addLine3D(THREE, g, -W/2,-H/2, W/2,-H/2, lc)
+  _addLine3D(THREE, g,  W/2,-H/2, W/2, H/2, lc)
+  _addLine3D(THREE, g,  W/2, H/2,-W/2, H/2, lc)
+  _addLine3D(THREE, g, -W/2, H/2,-W/2,-H/2, lc)
+  // Half-way
+  _addLine3D(THREE, g, 0,-H/2, 0, H/2, lc)
+  // Center circle (r=9.15m, scale to 3.3)
+  _addCircle3D(THREE, g, 0, 0, 3.3, lc)
+  // Center spot
+  _addCircle3D(THREE, g, 0, 0, 0.1, lc, 12)
+  // Penalty areas both ends
+  ;[-1, 1].forEach(side => {
+    const bx = side * W/2
+    const pw = 4.8, ph = 10.2
+    const sx = side === -1 ? bx : bx-pw*side
+    _addLine3D(THREE, g, bx, -ph/2, bx-pw*side, -ph/2, lc)
+    _addLine3D(THREE, g, bx-pw*side, -ph/2, bx-pw*side, ph/2, lc)
+    _addLine3D(THREE, g, bx-pw*side, ph/2, bx, ph/2, lc)
+    // Goal area
+    const gaw = 2.0, gah = 4.5
+    _addLine3D(THREE, g, bx, -gah/2, bx-gaw*side, -gah/2, lc)
+    _addLine3D(THREE, g, bx-gaw*side, -gah/2, bx-gaw*side, gah/2, lc)
+    _addLine3D(THREE, g, bx-gaw*side, gah/2, bx, gah/2, lc)
+    // Penalty spot
+    _addCircle3D(THREE, g, bx - side*3.0, 0, 0.1, lc, 12)
+    // Penalty arc
+    _addArc3D(THREE, g, bx-side*3.0, 0, 3.3,
+      side === -1 ? -Math.PI*0.35 : Math.PI*0.65,
+      side === -1 ?  Math.PI*0.35 : Math.PI*1.35, lc, 32)
+    // Corner arcs
+    ;[-1, 1].forEach(cz => {
+      _addArc3D(THREE, g, bx, cz*H/2, 0.3,
+        side === -1 ? (cz===-1 ? 0 : -Math.PI/2) : (cz===-1 ? Math.PI/2 : Math.PI),
+        side === -1 ? (cz===-1 ? Math.PI/2 : 0) : (cz===-1 ? Math.PI : Math.PI*1.5), lc, 16)
+    })
+    // Goal posts
+    const goalW = 1.83
+    const postGeo = new THREE.CylinderGeometry(0.05, 0.05, 1.2, 8)
+    const postMat = new THREE.MeshStandardMaterial({ color: 0xffffff })
+    const post1 = new THREE.Mesh(postGeo, postMat); post1.position.set(bx, 0.6, -goalW)
+    const post2 = new THREE.Mesh(postGeo, postMat); post2.position.set(bx, 0.6, goalW)
+    g.add(post1); g.add(post2)
+    const crossGeo = new THREE.CylinderGeometry(0.04, 0.04, goalW*2, 8)
+    const cross = new THREE.Mesh(crossGeo, postMat)
+    cross.position.set(bx, 1.2, 0); cross.rotation.x = Math.PI/2; cross.rotation.z = Math.PI/2
+    g.add(cross)
+  })
+}
+
+// American football field
+function buildFootballField(scene, THREE) {
+  const g = _courtGroup(THREE)
+  const W = 48, H = 26
+  _addFloor3D(THREE, g, W, H, 0x2d6a2d)
+  const lc = 0xffffff
+  // Outline
+  _addLine3D(THREE, g, -W/2,-H/2, W/2,-H/2, lc)
+  _addLine3D(THREE, g,  W/2,-H/2, W/2, H/2, lc)
+  _addLine3D(THREE, g,  W/2, H/2,-W/2, H/2, lc)
+  _addLine3D(THREE, g, -W/2, H/2,-W/2,-H/2, lc)
+  // Yard lines every 5 yds (field is 100yds=W-10 for end zones)
+  const playW = W - 10  // 100 yards
+  const yzOff = 5  // end zone width
+  for (let y = 0; y <= 10; y++) {
+    const x = -playW/2 + y * playW/10
+    _addLine3D(THREE, g, x, -H/2, x, H/2, y===5 ? 0xffff00 : lc)
+    // Hash marks
+    for (let h = -10; h <= 10; h++) {
+      const z = h * H/22
+      _addLine3D(THREE, g, x-0.3, z, x+0.3, z, lc, 0.02, 0.02)
+    }
+  }
+  // End zones
+  _addLine3D(THREE, g, -playW/2,-H/2, -playW/2, H/2, 0xffff00)
+  _addLine3D(THREE, g,  playW/2,-H/2,  playW/2, H/2, 0xffff00)
+  // End zone color overlay
+  ;[-1,1].forEach(side => {
+    const geo = new THREE.BoxGeometry(yzOff, 0.01, H)
+    const mat = new THREE.MeshBasicMaterial({ color: side===-1 ? 0x1a1a7a : 0x7a1a1a, transparent:true, opacity:0.3 })
+    const mesh = new THREE.Mesh(geo, mat)
+    mesh.position.set(side * (playW/2 + yzOff/2), 0.01, 0)
+    g.add(mesh)
+  })
+  // Goal posts
+  ;[-1,1].forEach(side => {
+    const bx = side * W/2
+    const poleGeo = new THREE.CylinderGeometry(0.07, 0.07, 5, 8)
+    const poleMat = new THREE.MeshStandardMaterial({ color: 0xffcc00, metalness: 0.8 })
+    const pole = new THREE.Mesh(poleGeo, poleMat)
+    pole.position.set(bx, 2.5, 0); g.add(pole)
+    const upGeo = new THREE.CylinderGeometry(0.05, 0.05, 3.5, 8)
+    const upright = new THREE.Mesh(upGeo, poleMat)
+    upright.position.set(bx, 6.25, 0); g.add(upright)
+    ;[-1,1].forEach(cz => {
+      const crossGeo = new THREE.CylinderGeometry(0.04, 0.04, 3, 8)
+      const cross = new THREE.Mesh(crossGeo, poleMat)
+      cross.rotation.z = Math.PI/2; cross.position.set(bx, 5.2, cz*1.5); g.add(cross)
+    })
+  })
+  // "50" center line
+  _addLine3D(THREE, g, 0,-H/2, 0, H/2, 0xffff00, 0.03, 0.08)
+}
+
+// Hockey rink
+function buildHockeyRink(scene, THREE) {
+  const g = _courtGroup(THREE)
+  const W = 30, H = 15
+  _addFloor3D(THREE, g, W, H, 0xd0eeff)  // ice blue-white
+  const lc = 0x0000cc  // blue lines
+  const rc = 0xcc0000  // red lines
+
+  // Boards (slightly raised rim)
+  const boardGeo = new THREE.BoxGeometry(W+0.4, 0.4, H+0.4)
+  const boardMat = new THREE.MeshLambertMaterial({ color: 0xdddddd })
+  const boards = new THREE.Mesh(boardGeo, boardMat)
+  boards.position.set(0, 0.05, 0)
+  g.add(boards)
+
+  // Ice surface on top
+  const iceGeo = new THREE.BoxGeometry(W-0.2, 0.02, H-0.2)
+  const iceMat = new THREE.MeshLambertMaterial({ color: 0xe8f4ff })
+  const ice = new THREE.Mesh(iceGeo, iceMat)
+  ice.position.set(0, 0.25, 0)
+  g.add(ice)
+
+  const y = 0.27
+  // Rink outline (rounded corners with arcs)
+  const r = 2.5
+  const iW = W/2-r, iH = H/2-r
+  // Straight sides
+  _addLine3D(THREE, g, -iW,-H/2, iW,-H/2, 0x000099, y)
+  _addLine3D(THREE, g, -iW, H/2, iW, H/2, 0x000099, y)
+  _addLine3D(THREE, g, -W/2,-iH, -W/2, iH, 0x000099, y)
+  _addLine3D(THREE, g,  W/2,-iH,  W/2, iH, 0x000099, y)
+  // Corners
+  _addArc3D(THREE, g, -iW,-iH, r, Math.PI, Math.PI*1.5, 0x000099, 16, y)
+  _addArc3D(THREE, g,  iW,-iH, r, Math.PI*1.5, Math.PI*2, 0x000099, 16, y)
+  _addArc3D(THREE, g,  iW, iH, r, 0, Math.PI*0.5, 0x000099, 16, y)
+  _addArc3D(THREE, g, -iW, iH, r, Math.PI*0.5, Math.PI, 0x000099, 16, y)
+
+  // Red center line
+  _addLine3D(THREE, g, 0,-H/2, 0, H/2, rc, y, 0.12)
+  // Blue lines
+  _addLine3D(THREE, g, -W/6,-H/2, -W/6, H/2, lc, y, 0.1)
+  _addLine3D(THREE, g,  W/6,-H/2,  W/6, H/2, lc, y, 0.1)
+  // Goal lines (red)
+  _addLine3D(THREE, g, -W/2*0.85,-H/2, -W/2*0.85, H/2, rc, y, 0.06)
+  _addLine3D(THREE, g,  W/2*0.85,-H/2,  W/2*0.85, H/2, rc, y, 0.06)
+
+  // Face-off circles (5 total)
+  const faceOffCircleColor = 0xcc0000
+  ;[
+    [0,0, 0xcc0000],
+    [-W/2*0.6, -H/2*0.5, 0xcc0000],
+    [-W/2*0.6,  H/2*0.5, 0xcc0000],
+    [ W/2*0.6, -H/2*0.5, 0xcc0000],
+    [ W/2*0.6,  H/2*0.5, 0xcc0000]
+  ].forEach(([cx,cz,col]) => {
+    _addCircle3D(THREE, g, cx, cz, 2.0, col, 32, y)
+    _addCircle3D(THREE, g, cx, cz, 0.1, col, 12, y)
+  })
+
+  // Goal creases & nets
+  ;[-1,1].forEach(side => {
+    const bx = side * W/2 * 0.85
+    // Crease (semi-circle)
+    _addArc3D(THREE, g, bx, 0, 1.5,
+      side === -1 ? -Math.PI*0.5 : Math.PI*0.5,
+      side === -1 ?  Math.PI*0.5 : Math.PI*1.5, 0xcc0000, 24, y)
+    // Goal frame
+    const postMat = new THREE.MeshStandardMaterial({ color: 0xff0000 })
+    const postGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.6, 8)
+    const p1 = new THREE.Mesh(postGeo, postMat); p1.position.set(bx, 0.35, -0.55); g.add(p1)
+    const p2 = new THREE.Mesh(postGeo, postMat); p2.position.set(bx, 0.35, 0.55); g.add(p2)
+    const crossGeo = new THREE.CylinderGeometry(0.03, 0.03, 1.1, 8)
+    const cross = new THREE.Mesh(crossGeo, postMat)
+    cross.rotation.x = Math.PI/2; cross.rotation.z = Math.PI/2
+    cross.position.set(bx, 0.65, 0); g.add(cross)
+  })
+}
+
+// ── Events ────────────────────────────────────────────────────────────
+function _pmAttachEvents(canvas, wrap, THREE) {
+  // Mouse events
+  canvas.addEventListener('mousedown', e => _pmMouseDown(e, THREE))
+  canvas.addEventListener('mousemove', e => _pmMouseMove(e, THREE))
+  canvas.addEventListener('mouseup',   e => _pmMouseUp(e, THREE))
+  canvas.addEventListener('contextmenu', e => { e.preventDefault(); _pmRightClick(e, THREE) })
+  canvas.addEventListener('wheel',     e => _pmWheel(e), { passive: false })
+  // Touch events
+  canvas.addEventListener('touchstart', e => _pmTouchStart(e, THREE), { passive: false })
+  canvas.addEventListener('touchmove',  e => _pmTouchMove(e, THREE),  { passive: false })
+  canvas.addEventListener('touchend',   e => _pmTouchEnd(e, THREE),   { passive: false })
+}
+
+function _pmGetMouse(e, canvas) {
+  const rect = canvas.getBoundingClientRect()
+  return {
+    x: ((e.clientX - rect.left) / rect.width)  * 2 - 1,
+    y: -((e.clientY - rect.top)  / rect.height) * 2 + 1,
+    rawX: e.clientX - rect.left,
+    rawY: e.clientY - rect.top
+  }
+}
+
+function _pmRaycastFloor(mx, my, THREE) {
+  PM.raycaster.setFromCamera({ x: mx, y: my }, PM.camera)
+  const plane = new THREE.Plane(new THREE.Vector3(0,1,0), 0)
+  const pt = new THREE.Vector3()
+  PM.raycaster.ray.intersectPlane(plane, pt)
+  return pt
+}
+
+function _pmMouseDown(e, THREE) {
+  const canvas = e.target
+  const m = _pmGetMouse(e, canvas)
+  e.preventDefault()
+
+  if (e.button === 1 || (e.button === 0 && e.altKey)) {
+    PM.isPanning = true
+    PM.orbitStart = { x: e.clientX, y: e.clientY, panX: PM.panOffset.x, panY: PM.panOffset.y }
+    return
+  }
+  if (e.button === 2) return
+
+  if (e.button === 0) {
+    if (PM.tool === 'select') {
+      // Check if clicking a pin
+      const hit = _pmHitTestPins(m.x, m.y, THREE)
+      if (hit) {
+        PM.dragPin = hit
+        PM.dragOffset = _pmRaycastFloor(m.x, m.y, THREE)?.clone()
+        if (PM.dragOffset) {
+          PM.dragOffset.sub(hit.mesh.position)
+        }
+      } else {
+        // Start orbit
+        PM.isOrbiting = true
+        PM.orbitStart = { x: e.clientX, y: e.clientY, ...PM.orbitSpherical }
+      }
+    }
+    else if (PM.tool === 'pin') {
+      const pt = _pmRaycastFloor(m.x, m.y, THREE)
+      if (pt) _pmPlacePin(pt, THREE)
+    }
+    else if (PM.tool === 'draw' || PM.tool === 'arrow') {
+      const pt = _pmRaycastFloor(m.x, m.y, THREE)
+      if (pt) {
+        PM.drawing = true
+        PM.drawPoints = [pt.clone()]
+      }
+    }
+    else if (PM.tool === 'zone') {
+      const pt = _pmRaycastFloor(m.x, m.y, THREE)
+      if (pt) {
+        if (!PM.drawing) {
+          PM.drawing = true
+          PM.drawPoints = [pt.clone()]
+        } else {
+          PM.drawPoints.push(pt.clone())
+        }
+      }
+    }
+    else if (PM.tool === 'erase') {
+      const hit = _pmHitTestPins(m.x, m.y, THREE)
+      if (hit) { _pmDeletePin(hit); return }
+      _pmHitTestLines(m.x, m.y, THREE)
+    }
+  }
+}
+
+function _pmMouseMove(e, THREE) {
+  const canvas = e.target
+  const m = _pmGetMouse(e, canvas)
+
+  if (PM.isPanning && PM.orbitStart) {
+    const dx = (e.clientX - PM.orbitStart.x) * 0.03
+    const dz = (e.clientY - PM.orbitStart.y) * 0.03
+    PM.panOffset.x = PM.orbitStart.panX - dx
+    PM.panOffset.y = PM.orbitStart.panY + dz
+    _pmSetCamera(); return
+  }
+  if (PM.isOrbiting && PM.orbitStart) {
+    const dx = (e.clientX - PM.orbitStart.x) * 0.006
+    const dy = (e.clientY - PM.orbitStart.y) * 0.006
+    PM.orbitSpherical.theta = PM.orbitStart.theta - dx
+    PM.orbitSpherical.phi = Math.max(0.15, Math.min(Math.PI/2-0.05, PM.orbitStart.phi + dy))
+    _pmSetCamera(); return
+  }
+  if (PM.dragPin) {
+    const pt = _pmRaycastFloor(m.x, m.y, THREE)
+    if (pt && PM.dragOffset) {
+      const newPos = pt.clone().sub(PM.dragOffset)
+      PM.dragPin.mesh.position.set(newPos.x, 0.15, newPos.z)
+      PM.dragPin.x = newPos.x; PM.dragPin.z = newPos.z
+      _pmUpdatePinLabels(THREE)
+    }
+    return
+  }
+  if (PM.drawing && (PM.tool === 'draw' || PM.tool === 'arrow')) {
+    const pt = _pmRaycastFloor(m.x, m.y, THREE)
+    if (pt) {
+      PM.drawPoints.push(pt.clone())
+      _pmUpdatePreviewLine(THREE)
+    }
+  }
+}
+
+function _pmMouseUp(e, THREE) {
+  if (PM.isPanning) { PM.isPanning = false; PM.orbitStart = null; return }
+  if (PM.isOrbiting) { PM.isOrbiting = false; PM.orbitStart = null; return }
+  if (PM.dragPin) {
+    _pmPushUndo()
+    PM.dragPin = null; PM.dragOffset = null; return
+  }
+  if (PM.drawing && (PM.tool === 'draw' || PM.tool === 'arrow')) {
+    if (PM.drawPoints.length > 1) {
+      _pmCommitLine(THREE)
+    }
+    PM.drawing = false
+    PM.drawPoints = []
+    _pmClearPreview()
+  }
+}
+
+function _pmRightClick(e, THREE) {
+  if (PM.tool === 'zone' && PM.drawing && PM.drawPoints.length >= 3) {
+    _pmCommitZone(THREE)
+    PM.drawing = false; PM.drawPoints = []
+    return
+  }
+  // Select tool: right-click on pin to delete
+  const canvas = e.target
+  const m = _pmGetMouse(e, canvas)
+  const hit = _pmHitTestPins(m.x, m.y, THREE)
+  if (hit) _pmDeletePin(hit)
+}
+
+function _pmWheel(e) {
+  e.preventDefault()
+  PM.orbitSpherical.radius = Math.max(6, Math.min(55, PM.orbitSpherical.radius + e.deltaY * 0.04))
+  _pmSetCamera()
+}
+
+// Touch events
+function _pmTouchStart(e, THREE) {
+  e.preventDefault()
+  if (e.touches.length === 2) {
+    PM.pinchStart = Math.hypot(
+      e.touches[0].clientX - e.touches[1].clientX,
+      e.touches[0].clientY - e.touches[1].clientY
+    )
+    PM.lastTouch = null
+    return
+  }
+  const t = e.touches[0]
+  PM.lastTouch = { x: t.clientX, y: t.clientY }
+  PM.isOrbiting = true
+  PM.orbitStart = { x: t.clientX, y: t.clientY, ...PM.orbitSpherical }
+}
+function _pmTouchMove(e, THREE) {
+  e.preventDefault()
+  if (e.touches.length === 2 && PM.pinchStart != null) {
+    const dist = Math.hypot(
+      e.touches[0].clientX - e.touches[1].clientX,
+      e.touches[0].clientY - e.touches[1].clientY
+    )
+    const scale = PM.pinchStart / dist
+    PM.orbitSpherical.radius = Math.max(6, Math.min(55, PM.orbitSpherical.radius * scale))
+    PM.pinchStart = dist
+    _pmSetCamera(); return
+  }
+  if (PM.isOrbiting && PM.orbitStart && e.touches.length === 1) {
+    const t = e.touches[0]
+    const dx = (t.clientX - PM.orbitStart.x) * 0.006
+    const dy = (t.clientY - PM.orbitStart.y) * 0.006
+    PM.orbitSpherical.theta = PM.orbitStart.theta - dx
+    PM.orbitSpherical.phi = Math.max(0.15, Math.min(Math.PI/2-0.05, PM.orbitStart.phi + dy))
+    _pmSetCamera()
+  }
+}
+function _pmTouchEnd(e, THREE) {
+  PM.isOrbiting = false; PM.orbitStart = null; PM.pinchStart = null; PM.lastTouch = null
+}
+
+// ── Pin management ───────────────────────────────────────────────────
+function _pmPlacePin(pt, THREE) {
+  const color = PM.color
+  const num = PM.pinCounter++
+  // Sphere body
+  const geo = new THREE.SphereGeometry(0.32, 16, 16)
+  const mat = new THREE.MeshStandardMaterial({
+    color: new THREE.Color(color),
+    emissive: new THREE.Color(color),
+    emissiveIntensity: 0.25,
+    roughness: 0.35,
+    metalness: 0.4
+  })
+  const mesh = new THREE.Mesh(geo, mat)
+  mesh.position.set(pt.x, 0.32, pt.z)
+  mesh.castShadow = true
+  // Pin base
+  const coneGeo = new THREE.ConeGeometry(0.12, 0.4, 12)
+  const coneMat = new THREE.MeshStandardMaterial({ color: new THREE.Color(color), metalness: 0.3 })
+  const cone = new THREE.Mesh(coneGeo, coneMat)
+  cone.position.set(pt.x, 0.05, pt.z); cone.rotation.x = Math.PI
+  // Number label via canvas texture
+  const labelGeo = new THREE.PlaneGeometry(0.7, 0.35)
+  const labelTex = _pmMakeLabelTex(String(num), color)
+  const labelMat = new THREE.MeshBasicMaterial({ map: labelTex, transparent: true, depthWrite: false, side: THREE.DoubleSide })
+  const label = new THREE.Mesh(labelGeo, labelMat)
+  label.position.set(pt.x, 0.9, pt.z)
+  label.userData.isLabel = true
+
+  PM.scene.add(mesh); PM.scene.add(cone); PM.scene.add(label)
+  const pin = { id: Date.now()+Math.random(), num, color, mesh, cone, label, x: pt.x, z: pt.z }
+  PM.pins.push(pin)
+  _pmPushUndo()
+  return pin
+}
+
+function _pmMakeLabelTex(text, bgColor) {
+  const THREE = window.THREE
+  const c = document.createElement('canvas')
+  c.width = 128; c.height = 64
+  const ctx = c.getContext('2d')
+  ctx.clearRect(0,0,128,64)
+  ctx.fillStyle = bgColor
+  ctx.beginPath()
+  ctx.roundRect(4, 4, 120, 56, 12)
+  ctx.fill()
+  ctx.fillStyle = '#ffffff'
+  ctx.font = 'bold 36px Inter, sans-serif'
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+  ctx.fillText(text, 64, 34)
+  const tex = new THREE.CanvasTexture(c)
+  return tex
+}
+
+function _pmUpdatePinLabels(THREE) {
+  PM.pins.forEach(pin => {
+    if (pin.label) {
+      pin.label.position.set(pin.mesh.position.x, 0.9, pin.mesh.position.z)
+      pin.label.lookAt(PM.camera.position)
+    }
+  })
+}
+
+function _pmHitTestPins(mx, my, THREE) {
+  if (!PM.raycaster || !PM.camera) return null
+  PM.raycaster.setFromCamera({ x: mx, y: my }, PM.camera)
+  const meshes = PM.pins.map(p => p.mesh)
+  const hits = PM.raycaster.intersectObjects(meshes)
+  if (hits.length > 0) {
+    return PM.pins.find(p => p.mesh === hits[0].object) || null
+  }
+  return null
+}
+
+function _pmDeletePin(pin) {
+  PM.scene.remove(pin.mesh)
+  PM.scene.remove(pin.cone)
+  PM.scene.remove(pin.label)
+  PM.pins = PM.pins.filter(p => p.id !== pin.id)
+  _pmPushUndo()
+}
+
+// ── Line / Arrow drawing ──────────────────────────────────────────────
+let _pmPreviewLine = null
+
+function _pmUpdatePreviewLine(THREE) {
+  if (_pmPreviewLine) { PM.scene.remove(_pmPreviewLine); _pmPreviewLine = null }
+  if (PM.drawPoints.length < 2) return
+  const pts = PM.drawPoints.filter((_, i) => i % 3 === 0 || i === PM.drawPoints.length-1)
+  const geo = new THREE.BufferGeometry().setFromPoints(pts.map((p) => new THREE.Vector3(p.x, 0.08, p.z)))
+  const mat = new THREE.LineBasicMaterial({ color: new THREE.Color(PM.color), transparent: true, opacity: 0.7 })
+  _pmPreviewLine = new THREE.Line(geo, mat)
+  PM.scene.add(_pmPreviewLine)
+}
+
+function _pmClearPreview() {
+  if (_pmPreviewLine) { PM.scene.remove(_pmPreviewLine); _pmPreviewLine = null }
+}
+
+function _pmCommitLine(THREE) {
+  const pts = PM.drawPoints.filter((_, i) => i % 2 === 0 || i === PM.drawPoints.length-1)
+  if (pts.length < 2) return
+  const colorHex = new THREE.Color(PM.color)
+  const geo = new THREE.BufferGeometry().setFromPoints(pts.map((p) => new THREE.Vector3(p.x, 0.06, p.z)))
+  const dashArr = PM.lineStyle === 'dashed' ? [0.5, 0.5] : PM.lineStyle === 'dotted' ? [0.1, 0.4] : []
+
+  // Tube for solid lines
+  let lineMesh
+  if (PM.lineStyle === 'solid') {
+    const tubeGeo = _pmBuildTube(THREE, pts, 0.06)
+    const tubeMat = new THREE.MeshBasicMaterial({ color: colorHex })
+    lineMesh = new THREE.Mesh(tubeGeo, tubeMat)
+  } else {
+    const mat = new THREE.LineDashedMaterial({ color: colorHex, dashSize: 0.5, gapSize: 0.3 })
+    lineMesh = new THREE.Line(geo, mat)
+    lineMesh.computeLineDistances()
+  }
+  PM.scene.add(lineMesh)
+
+  // Arrow head if arrow tool
+  let arrowHead = null
+  if (PM.tool === 'arrow' && pts.length >= 2) {
+    const last = pts[pts.length-1]
+    const prev = pts[pts.length-2]
+    const dx = last.x - prev.x, dz = last.z - prev.z
+    const angle = Math.atan2(dx, dz)
+    const coneGeo = new THREE.ConeGeometry(0.18, 0.55, 12)
+    const coneMat = new THREE.MeshBasicMaterial({ color: colorHex })
+    arrowHead = new THREE.Mesh(coneGeo, coneMat)
+    arrowHead.position.set(last.x, 0.12, last.z)
+    arrowHead.rotation.z = Math.PI
+    arrowHead.rotation.y = -angle
+    PM.scene.add(arrowHead)
+  }
+
+  const lineObj = { id: Date.now()+Math.random(), mesh: lineMesh, arrowHead, color: PM.color, style: PM.lineStyle, pts }
+  PM.lines.push(lineObj)
+  _pmPushUndo()
+}
+
+function _pmBuildTube(THREE, pts, radius) {
+  // Smooth catmull-rom curve through points
+  const vectors = pts.map((p) => new THREE.Vector3(p.x, 0.06, p.z))
+  if (vectors.length < 2) return new THREE.BufferGeometry()
+  const curve = new THREE.CatmullRomCurve3(vectors)
+  return new THREE.TubeGeometry(curve, Math.max(pts.length*3, 20), radius, 6, false)
+}
+
+function _pmHitTestLines(mx, my, THREE) {
+  PM.raycaster.setFromCamera({ x: mx, y: my }, PM.camera)
+  const meshes = PM.lines.map(l => l.mesh).filter(Boolean)
+  const hits = PM.raycaster.intersectObjects(meshes)
+  if (hits.length > 0) {
+    const lineObj = PM.lines.find(l => l.mesh === hits[0].object)
+    if (lineObj) {
+      PM.scene.remove(lineObj.mesh)
+      if (lineObj.arrowHead) PM.scene.remove(lineObj.arrowHead)
+      PM.lines = PM.lines.filter(l => l.id !== lineObj.id)
+      _pmPushUndo()
+    }
+  }
+}
+
+// ── Zone drawing ───────────────────────────────────────────────────────
+function _pmCommitZone(THREE) {
+  const pts = PM.drawPoints
+  if (pts.length < 3) return
+  const shape = new THREE.Shape()
+  shape.moveTo(pts[0].x, pts[0].z)
+  pts.slice(1).forEach((p) => shape.lineTo(p.x, p.z))
+  shape.closePath()
+  const geo = new THREE.ShapeGeometry(shape)
+  // Rotate to lie flat
+  const color = new THREE.Color(PM.color)
+  const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.22, side: window.THREE.DoubleSide, depthWrite: false })
+  const mesh = new THREE.Mesh(geo, mat)
+  mesh.rotation.x = -Math.PI/2; mesh.position.y = 0.04
+  PM.scene.add(mesh)
+  // Outline
+  const outPts = [...pts, pts[0]].map((p) => new THREE.Vector3(p.x, 0.06, p.z))
+  const outGeo = new THREE.BufferGeometry().setFromPoints(outPts)
+  const outMat = new THREE.LineBasicMaterial({ color, linewidth: 2 })
+  const outline = new THREE.Line(outGeo, outMat)
+  PM.scene.add(outline)
+  PM.zones.push({ id: Date.now(), mesh, outline, color: PM.color })
+  _pmPushUndo()
+}
+
+// ── Undo / Redo ────────────────────────────────────────────────────────
+function _pmPushUndo() {
+  PM.undoStack.push(_pmSnapshot())
+  PM.redoStack = []
+}
+
+function _pmSnapshot() {
+  return {
+    pins: PM.pins.map(p => ({ id: p.id, num: p.num, color: p.color, x: p.x, z: p.z })),
+    lines: PM.lines.map(l => ({ id: l.id, color: l.color, style: l.style,
+      pts: l.pts.map((p) => ({ x: p.x, z: p.z })) })),
+    zones: PM.zones.map(z => ({ id: z.id, color: z.color }))
+  }
+}
+
+function pmUndo() {
+  if (PM.undoStack.length === 0) return
+  PM.redoStack.push(_pmSnapshot())
+  const snap = PM.undoStack.pop()
+  _pmRestoreSnapshot(snap)
+}
+
+function pmRedo() {
+  if (PM.redoStack.length === 0) return
+  PM.undoStack.push(_pmSnapshot())
+  const snap = PM.redoStack.pop()
+  _pmRestoreSnapshot(snap)
+}
+
+function _pmRestoreSnapshot(snap) {
+  const THREE = window.THREE
+  // Clear current drawings
+  ;[...PM.pins].forEach(p => { PM.scene.remove(p.mesh); PM.scene.remove(p.cone); PM.scene.remove(p.label) })
+  ;[...PM.lines].forEach(l => { PM.scene.remove(l.mesh); if (l.arrowHead) PM.scene.remove(l.arrowHead) })
+  ;[...PM.zones].forEach(z => { PM.scene.remove(z.mesh); PM.scene.remove(z.outline) })
+  PM.pins = []; PM.lines = []; PM.zones = []
+
+  // Restore pins
+  snap.pins.forEach(p => {
+    const pt = { x: p.x, z: p.z }
+    const origColor = PM.color, origCounter = PM.pinCounter
+    PM.color = p.color
+    PM.pinCounter = p.num
+    _pmPlacePin({ x: p.x, z: p.z }, THREE)
+    PM.color = origColor
+    PM.pinCounter = origCounter
+  })
+  PM.pinCounter = snap.pins.length > 0 ? Math.max(...snap.pins.map(p => p.num)) + 1 : 1
+
+  // Restore lines
+  snap.lines.forEach(l => {
+    const origColor = PM.color, origStyle = PM.lineStyle, origTool = PM.tool
+    PM.color = l.color; PM.lineStyle = l.style
+    PM.tool = 'draw'
+    PM.drawPoints = l.pts.map((p) => ({ x: p.x, z: p.z }))
+    _pmCommitLine(THREE)
+    PM.color = origColor; PM.lineStyle = origStyle; PM.tool = origTool
+    PM.drawPoints = []
+  })
+}
+
+// ── Camera & view ──────────────────────────────────────────────────────
+function pmResetCamera() {
+  const cfg = SPORT_COURTS[PM.sport]
+  PM.orbitSpherical = { theta: 0.3, phi: 0.85, radius: Math.max(cfg.w, cfg.h) * 1.4 }
+  PM.panOffset = { x: 0, y: 0 }
+  _pmSetCamera()
+}
+
+function pmToggle3D() {
+  PM.is3D = !PM.is3D
+  if (PM.is3D) {
+    PM.orbitSpherical.phi = 0.85
+  } else {
+    PM.orbitSpherical.phi = 0.05
+    PM.orbitSpherical.theta = 0
+  }
+  _pmSetCamera()
+  const btn = document.getElementById('pm-3d-toggle-btn')
+  if (btn) btn.innerHTML = PM.is3D ? '<i class="fas fa-cube"></i>' : '<i class="fas fa-square"></i>'
+  toast(PM.is3D ? '3D view' : 'Top-down view', 'info')
+}
+
+function pmClear() {
+  if (!confirm('Clear all pins and drawings?')) return
+  _pmPushUndo()
+  ;[...PM.pins].forEach(p => { PM.scene.remove(p.mesh); PM.scene.remove(p.cone); PM.scene.remove(p.label) })
+  ;[...PM.lines].forEach(l => { PM.scene.remove(l.mesh); if (l.arrowHead) PM.scene.remove(l.arrowHead) })
+  ;[...PM.zones].forEach(z => { PM.scene.remove(z.mesh); PM.scene.remove(z.outline) })
+  PM.pins = []; PM.lines = []; PM.zones = []
+  PM.pinCounter = 1
+  toast('Court cleared', 'info')
+}
+
+// ── Sport / Tool / Color setters ──────────────────────────────────────
+function pmSetSport(sport) {
+  PM.sport = sport
+  document.querySelectorAll('.pm-sport-btn').forEach(b => b.classList.remove('active'))
+  document.querySelector(\`.pm-sport-btn[data-sport="\${sport}"]\`)?.classList.add('active')
+  const labels = { basketball:'🏀 Basketball', soccer:'⚽ Soccer', football:'🏈 Football', hockey:'🏒 Hockey' }
+  const lbl = document.getElementById('pm-sport-label')
+  if (lbl) lbl.textContent = labels[sport] || sport
+  // Rebuild court, clear drawings
+  if (PM.scene) {
+    ;[...PM.pins].forEach(p => { PM.scene.remove(p.mesh); PM.scene.remove(p.cone); PM.scene.remove(p.label) })
+    ;[...PM.lines].forEach(l => { PM.scene.remove(l.mesh); if (l.arrowHead) PM.scene.remove(l.arrowHead) })
+    ;[...PM.zones].forEach(z => { PM.scene.remove(z.mesh); PM.scene.remove(z.outline) })
+    PM.pins = []; PM.lines = []; PM.zones = []; PM.pinCounter = 1
+    _pmBuildCourt(window.THREE)
+    pmResetCamera()
+  }
+  toast(\`Switched to \${labels[sport]}\`, 'info')
+}
+
+function pmSetTool(tool) {
+  PM.tool = tool
+  document.querySelectorAll('.pm-tool-btn').forEach(b => b.classList.remove('active'))
+  document.querySelector(\`.pm-tool-btn[data-tool="\${tool}"]\`)?.classList.add('active')
+  const ind = document.getElementById('pm-tool-indicator')
+  if (ind) ind.textContent = tool.toUpperCase()
+  const pinHint = document.getElementById('pm-pin-hint')
+  const drawHint = document.getElementById('pm-draw-hint')
+  if (pinHint) pinHint.style.display = tool === 'pin' ? 'block' : 'none'
+  if (drawHint) drawHint.style.display = (tool === 'draw' || tool === 'arrow') ? 'block' : 'none'
+  // Reset drawing state on tool change
+  PM.drawing = false; PM.drawPoints = []; _pmClearPreview()
+}
+
+function pmSetColor(color) {
+  PM.color = color
+  document.querySelectorAll('.pm-color-swatch').forEach(s => s.classList.remove('active'))
+  const sw = document.querySelector(\`.pm-color-swatch[data-color="\${color}"]\`)
+  if (sw) sw.classList.add('active')
+  const cc = document.getElementById('pm-custom-color')
+  if (cc) cc.value = color
+}
+
+function pmSetLineStyle(style) {
+  PM.lineStyle = style
+  document.querySelectorAll('.pm-style-btn').forEach(b => b.classList.remove('active'))
+  document.querySelector(\`.pm-style-btn[data-style="\${style}"]\`)?.classList.add('active')
+}
+
+// ── Save / Load plays ─────────────────────────────────────────────────
+function pmSavePlay() {
+  const name = document.getElementById('pm-play-name')?.value.trim()
+  if (!name) { toast('Enter a play name first', 'warn'); return }
+  const THREE = window.THREE
+  const play = {
+    id: Date.now(),
+    name,
+    sport: PM.sport,
+    createdAt: new Date().toISOString(),
+    pins: PM.pins.map(p => ({ num: p.num, color: p.color, x: p.x, z: p.z })),
+    lines: PM.lines.map(l => ({ color: l.color, style: l.style, pts: l.pts.map((p) => ({x:p.x,z:p.z})), isArrow: l.arrowHead != null })),
+    zones: PM.zones.map(z => ({ color: z.color, pts: [] }))
+  }
+  PM.savedPlays.unshift(play)
+  localStorage.setItem('cv_plays', JSON.stringify(PM.savedPlays.slice(0,50)))
+  ;document.getElementById('pm-play-name').value = ''
+  _pmRenderPlays()
+  toast(\`✅ Play "\${name}" saved!\`, 'ok')
+}
+
+function pmLoadPlay(id) {
+  const THREE = window.THREE
+  const play = PM.savedPlays.find(p => p.id === id)
+  if (!play) return
+  // Switch sport if needed
+  if (play.sport !== PM.sport) pmSetSport(play.sport)
+  // Clear
+  ;[...PM.pins].forEach(p => { PM.scene.remove(p.mesh); PM.scene.remove(p.cone); PM.scene.remove(p.label) })
+  ;[...PM.lines].forEach(l => { PM.scene.remove(l.mesh); if (l.arrowHead) PM.scene.remove(l.arrowHead) })
+  PM.pins = []; PM.lines = []; PM.pinCounter = 1
+
+  // Restore pins
+  const origColor = PM.color
+  play.pins.forEach(p => {
+    PM.color = p.color; PM.pinCounter = p.num
+    _pmPlacePin({ x: p.x, z: p.z }, THREE)
+  })
+  PM.pinCounter = play.pins.length + 1
+  // Restore lines
+  const origTool = PM.tool, origStyle = PM.lineStyle
+  play.lines.forEach(l => {
+    PM.color = l.color; PM.lineStyle = l.style
+    PM.tool = l.isArrow ? 'arrow' : 'draw'
+    PM.drawPoints = l.pts.map((p) => ({ x: p.x, z: p.z }))
+    _pmCommitLine(THREE)
+  })
+  PM.color = origColor; PM.tool = origTool; PM.lineStyle = origStyle; PM.drawPoints = []
+  toast(\`Loaded play "\${play.name}"\`, 'info')
+  document.getElementById('pm-plays-panel').style.display = 'none'
+}
+
+function pmDeletePlay(id) {
+  PM.savedPlays = PM.savedPlays.filter(p => p.id !== id)
+  localStorage.setItem('cv_plays', JSON.stringify(PM.savedPlays))
+  _pmRenderPlays()
+}
+
+function _pmRenderPlays() {
+  const list = document.getElementById('pm-plays-list')
+  if (!list) return
+  if (!PM.savedPlays.length) {
+    list.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;padding:8px">No saved plays</div>'
+    return
+  }
+  list.innerHTML = PM.savedPlays.map(p => \`
+    <div class="pm-plays-item" onclick="pmLoadPlay(\${p.id})">
+      <span style="font-size:14px">\${({basketball:'🏀',soccer:'⚽',football:'🏈',hockey:'🏒'})[p.sport]||'🏀'}</span>
+      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">\${esc(p.name)}</span>
+      <button class="del-btn" onclick="event.stopPropagation();pmDeletePlay(\${p.id})" title="Delete"><i class="fas fa-times"></i></button>
+    </div>
+  \`).join('')
+}
+
+function pmTogglePlaysPanel() {
+  const panel = document.getElementById('pm-plays-panel')
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none'
+  if (panel.style.display === 'block') _pmRenderPlays()
+}
+
+// ── Export PNG ────────────────────────────────────────────────────────
+function pmExportPNG() {
+  if (!PM.renderer) return
+  PM.renderer.render(PM.scene, PM.camera)
+  const url = PM.renderer.domElement.toDataURL('image/png')
+  const a = document.createElement('a')
+  a.href = url
+  a.download = \`playmaker-\${PM.sport}-\${Date.now()}.png\`
+  a.click()
+  toast('PNG exported!', 'ok')
+}
+
+// ── Keyboard shortcuts ─────────────────────────────────────────────────
+function _pmKeyDown(e) {
+  if (!document.getElementById('view-playmaker')?.classList.contains('active')) return
+  if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+  if (e.ctrlKey && e.key === 'z') { e.preventDefault(); pmUndo(); return }
+  if (e.ctrlKey && e.key === 'y') { e.preventDefault(); pmRedo(); return }
+  const map = { v:'select', p:'pin', d:'draw', a:'arrow', z:'zone', e:'erase' }
+  if (!e.ctrlKey && map[e.key.toLowerCase()]) pmSetTool(map[e.key.toLowerCase()])
+}
+
+// ── Role gating ───────────────────────────────────────────────────────
+function _pmUpdateRoleGating() {
+  const role = window.S?.currentUser?.role || 'coach'
+  const allowed = ['coach','assistant_coach','admin'].includes(role)
+  document.querySelectorAll('.coach-only').forEach((el) => {
+    el.style.display = allowed ? '' : 'none'
+  })
+}
 </script>
 </body>
 </html>`
