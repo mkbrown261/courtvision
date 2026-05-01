@@ -2580,7 +2580,13 @@ const SPORT_COURTS = {
 
 // ── Load Three.js from CDN then init ──────────────────────────────────
 async function initPlaymaker() {
-  if (PM.renderer) { PM.renderer.setSize(0,0); _pmResize(); return }
+  if (PM.renderer) {
+    // Already initialized — cancel stale anim loop, resize to current wrap size, restart loop
+    if (PM.animId) { cancelAnimationFrame(PM.animId); PM.animId = null }
+    _pmResize()
+    _pmAnimate(window.THREE)
+    return
+  }
   if (!window.THREE) {
     await _pmLoadScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js')
   }
@@ -2683,6 +2689,7 @@ function _pmResize() {
 }
 
 function _pmAnimate(THREE) {
+  if (PM.animId) cancelAnimationFrame(PM.animId)
   PM.animId = requestAnimationFrame(() => _pmAnimate(THREE))
   _pmUpdatePinLabels(THREE)
   PM.renderer.render(PM.scene, PM.camera)
