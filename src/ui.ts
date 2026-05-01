@@ -475,7 +475,7 @@ textarea.form-input{resize:vertical;min-height:80px;line-height:1.5}
           <div class="sec-header">
             <div>
               <div class="sec-title"><i class="fas fa-shield-halved"></i> Team Roster</div>
-              <div class="sec-sub">Your teams and rosters — select any team to manage players</div>
+              <div class="sec-sub">Create a team to build a roster — select any team to manage players</div>
             </div>
             <button class="btn btn-primary btn-sm" onclick="showCreateTeamModal()"><i class="fas fa-plus"></i> New Team</button>
           </div>
@@ -1098,7 +1098,7 @@ async function loadTeamsView() {
   const d = await api('GET', '/teams')
   const container = document.getElementById('teams-list-container')
   if (!d.teams?.length) {
-    container.innerHTML = '<div class="empty-state"><i class="fas fa-shield-halved"></i><h3>No teams yet</h3><p>Create a team to get started.</p><button class="btn btn-primary" onclick="showCreateTeamModal()"><i class="fas fa-plus"></i> Create Team</button></div>'
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-shield-halved"></i><h3>No teams yet</h3><p>Create a team to build a roster.</p><button class="btn btn-primary" onclick="showCreateTeamModal()"><i class="fas fa-plus"></i> Create Team</button></div>'
     return
   }
   container.innerHTML = '<div class="team-list">' + d.teams.map(t => \`
@@ -1360,6 +1360,11 @@ async function refreshNewGameDropdowns() {
 function selectSport(sport) {
   S.ngSport = sport
   document.querySelectorAll('.sport-tile').forEach(t => t.classList.toggle('sel', t.dataset.sport === sport))
+  // Re-trigger roster load to keep confirm banners in sync
+  ;['A','B'].forEach(slot => {
+    const sel = document.getElementById(\`ng-team-\${slot.toLowerCase()}-saved\`)
+    if (sel && sel.value) loadSavedTeamIntoSlot(slot)
+  })
 }
 
 async function loadSavedTeamIntoSlot(slot) {
@@ -1388,7 +1393,7 @@ async function loadSavedTeamIntoSlot(slot) {
   // Visual confirmation
   confirmEl.innerHTML = \`<div class="roster-confirm">
     <i class="fas fa-check-circle"></i>
-    <span>Roster loaded: <strong>\${team.players.length} players</strong> from <strong>\${esc(team.name)}</strong></span>
+    <span>Roster loaded: <strong>\${team.players.length} \${team.players.length === 1 ? "player" : "players"}</strong> — <em>\${esc(team.name)}</em></span>
   </div>\`
 }
 
@@ -1949,7 +1954,13 @@ function renderParseResult(result, containerId) {
   const c = document.getElementById(containerId)
   if (!result || !c) return
 
-  const players = result.players || []
+  // Normalize: /parse returns {number,name} while legacy returns {jerseyNumber,name}
+  const rawPlayers = result.players || []
+  const players = rawPlayers.map(p => ({
+    ...p,
+    jerseyNumber: String(p.jerseyNumber !== undefined ? p.jerseyNumber : (p.number !== undefined ? p.number : '0')),
+    number: undefined
+  }))
   const conflicts = result.conflicts || []
   const skipped = result.skipped || []
 
@@ -1965,7 +1976,7 @@ function renderParseResult(result, containerId) {
 
   // Conflict summary
   if (conflicts.length) {
-    html += '<div class="conflict-box"><div class="conflict-title"><i class="fas fa-triangle-exclamation"></i> Conflicts Detected</div>'
+    html += '<div class="conflict-box"><div class="conflict-title"><i class="fas fa-triangle-exclamation"></i> Conflicts Detected — Edit before saving</div>'
     html += conflicts.map(cc => \`<div class="conflict-item">⚠️ \${esc(cc.message)}</div>\`).join('')
     html += '</div>'
   }
@@ -1973,7 +1984,7 @@ function renderParseResult(result, containerId) {
   // Player preview list
   html += '<div class="preview-list">'
   html += players.map(p => {
-    const hasConflict = conflicts.some(cc => cc.players?.some(cp => cp.name === p.name && cp.jerseyNumber === p.jerseyNumber))
+    const hasConflict = conflicts.some(cc => cc.players?.some(cp => cp.name === p.name && String(cp.jerseyNumber !== undefined ? cp.jerseyNumber : (cp.number !== undefined ? cp.number : '')) === p.jerseyNumber))
     return \`<div class="preview-item \${hasConflict ? 'conflict' : ''}">
       <div class="preview-jersey \${hasConflict ? 'conflict-j' : ''}">\${esc(p.jerseyNumber)}</div>
       <span style="flex:1"><strong>\${esc(p.name)}</strong>\${p.position ? ' · <span style="color:var(--text3)">'+esc(p.position)+'</span>' : ''}</span>
@@ -1994,8 +2005,13 @@ function renderParseResult(result, containerId) {
 // EDIT BEFORE SAVE — conflict resolution + inline editing
 // ═══════════════════════════════════════════════════════════════════════
 function openEditBeforeSave(players, teamId) {
-  S.ebsPlayers = players.map(p => ({ ...p })) // deep copy
-  S.ebsTeamId = teamId || document.getElementById('ingest-target-team').value || null
+  // Normalize all players: ensure jerseyNumber is always a string
+  S.ebsPlayers = players.map(p => ({
+    name: String(p.name || '').trim(),
+    jerseyNumber: String(p.jerseyNumber !== undefined ? p.jerseyNumber : (p.number !== undefined ? p.number : '0')).trim(),
+    position: p.position || ''
+  }))
+  S.ebsTeamId = teamId || document.getElementById('ingest-target-team')?.value || null
   S.ebsConflicts = []
   renderEBSTable()
   openModal('modal-edit-before-save')
@@ -2020,16 +2036,17 @@ function renderEBSTable() {
 
   // Check local duplicate jerseys
   const jerseyCount = {}
-  S.ebsPlayers.forEach(p => { jerseyCount[p.jerseyNumber] = (jerseyCount[p.jerseyNumber]||0)+1 })
+  S.ebsPlayers.forEach(p => { const jk = String(p.jerseyNumber || '0'); jerseyCount[jk] = (jerseyCount[jk]||0)+1 })
 
   tbody.innerHTML = S.ebsPlayers.map((p,i) => {
-    const hasDupJ = jerseyCount[p.jerseyNumber] > 1
-    const hasServerConflict = S.ebsConflicts.some(cc => cc.player?.name === p.name && cc.player?.jerseyNumber === p.jerseyNumber)
+    const jk = String(p.jerseyNumber || '0')
+    const hasDupJ = (jerseyCount[jk]||0) > 1
+    const hasServerConflict = S.ebsConflicts.some(cc => cc.player?.name === p.name && String(cc.player?.jerseyNumber || cc.player?.number || '') === jk)
     const rowClass = (hasDupJ || hasServerConflict) ? 'has-conflict' : ''
     return \`<tr class="\${rowClass}">
       <td style="color:var(--text3)">\${i+1}</td>
       <td><input class="mini-input \${hasServerConflict||hasDupJ?'err':''}" data-idx="\${i}" data-field="name" value="\${esc(p.name)}" onchange="ebsUpdate(\${i},'name',this.value)"/></td>
-      <td><input class="mini-input \${hasDupJ?'err':''}" data-idx="\${i}" data-field="jerseyNumber" value="\${esc(p.jerseyNumber)}" onchange="ebsUpdate(\${i},'jerseyNumber',this.value)" style="width:60px;text-align:center"/></td>
+      <td><input class="mini-input \${hasDupJ?'err':''}" data-idx="\${i}" data-field="jerseyNumber" value="\${esc(jk)}" onchange="ebsUpdate(\${i},'jerseyNumber',this.value)" style="width:60px;text-align:center"/></td>
       <td><input class="mini-input" data-idx="\${i}" data-field="position" value="\${esc(p.position||'')}" onchange="ebsUpdate(\${i},'position',this.value)" placeholder="—"/></td>
       <td><button class="btn btn-danger btn-icon btn-sm" onclick="ebsRemove(\${i})" style="width:24px;height:24px"><i class="fas fa-times"></i></button></td>
     </tr>\`
@@ -2040,9 +2057,9 @@ function ebsUpdate(i, field, val) {
   S.ebsPlayers[i][field] = val.trim()
   // Re-check for dup jerseys without full re-render
   const jerseyCount = {}
-  S.ebsPlayers.forEach(p => { jerseyCount[p.jerseyNumber] = (jerseyCount[p.jerseyNumber]||0)+1 })
+  S.ebsPlayers.forEach(p => { const k = String(p.jerseyNumber||'0'); jerseyCount[k] = (jerseyCount[k]||0)+1 })
   document.querySelectorAll('#ebs-tbody tr').forEach((row, ri) => {
-    const hasConflict = jerseyCount[S.ebsPlayers[ri]?.jerseyNumber] > 1
+    const hasConflict = (jerseyCount[String(S.ebsPlayers[ri]?.jerseyNumber||'0')]||0) > 1
     row.classList.toggle('has-conflict', hasConflict)
     const jerseyInput = row.querySelector('[data-field="jerseyNumber"]')
     if (jerseyInput) jerseyInput.classList.toggle('err', hasConflict)
@@ -2065,6 +2082,13 @@ async function confirmSaveOverwrite() {
 async function doEBSSave(overwriteConflicts) {
   if (!S.ebsPlayers.length) { toast('No players to save','err'); return }
 
+  // Re-normalize before save (defensive: cleans any stale 'number' fields)
+  S.ebsPlayers = S.ebsPlayers.map(p => ({
+    name: String(p.name || '').trim(),
+    jerseyNumber: String(p.jerseyNumber !== undefined ? p.jerseyNumber : (p.number !== undefined ? p.number : '0')).trim(),
+    position: p.position || ''
+  }))
+
   // Local duplicate jersey check
   const jerseySet = new Set()
   for (const p of S.ebsPlayers) {
@@ -2085,7 +2109,7 @@ async function doEBSSave(overwriteConflicts) {
       toast(\`\${d.conflicts.length} conflict(s) found — review and resolve or choose "Save (Overwrite)"\`, 'warn')
       return
     }
-    toast(\`Saved \${d.count} players to team!\`, 'ok')
+    toast(\`✅ Saved \${d.count} player\${d.count !== 1 ? 's' : ''} to team!\`, 'ok')
     closeModal('modal-edit-before-save')
   } else {
     const teamName = prompt('New team name:')
@@ -2099,7 +2123,7 @@ async function doEBSSave(overwriteConflicts) {
     S.ebsTeamId = teamId
 
     const d = await api('POST', \`/teams/\${teamId}/import\`, { players: S.ebsPlayers, overwriteConflicts })
-    toast(\`Created "\${teamName}" with \${d.count} players!\`, 'ok')
+    toast(\`✅ Created "\${teamName}" with \${d.count} player\${d.count !== 1 ? 's' : ''}!\`, 'ok')
     closeModal('modal-edit-before-save')
   }
 
